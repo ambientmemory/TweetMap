@@ -36,23 +36,16 @@ public final class TweetGet {
             @Override
             public void onStatus(Status status) {
                 //System.out.println("@" + status.getUser().getScreenName() + " - " + status.getText());
-                User user = status.getUser();
-                Place place = status.getPlace();
-                //System.out.println("Place: "+place.toString());
-                ///System.out.println("Place coordinates:"+place.getGeometryCoordinates());
-                //System.out.println("Geolocation: "+geolocation);
-                try{
-                	TweetObject newTweet = new TweetObject(status.getUser().getScreenName(),
+            	try{
+            		TweetObject newTweet = new TweetObject(status.getUser().getScreenName(),
                 		status.getId(), status.getText(), status.getGeoLocation());
-                }catch(NullPointerException e){
-                	//Do nothing as we don't want to create a TweetObject with any null parameters. 
-                }
-                catch(FileNotFoundException e){
-                	
-                }
-                catch(IOException p){
-                	
-                }
+            	}catch(NullPointerException e){
+            		/**
+            		 * This catch block exists solely to capture errors in geolocation tags
+            		 * so that they are not accidentally parsed into our database. 
+            		 */
+            		//System.err.println("Geolocation is probably null");
+            	}
             }
             
 
