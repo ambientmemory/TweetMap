@@ -17,7 +17,7 @@ public class Map_render extends PApplet {
 	
 	static ArrayList<SimplePointMarker> markers_to_draw = new ArrayList<SimplePointMarker>();
 	UnfoldingMap map;
-	static String filename = ""; 
+	static String filename = "draw_db2.txt"; 
 	
 	/**
 	 * This method lays out the canvas before the rendering 
