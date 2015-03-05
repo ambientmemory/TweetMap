@@ -20,7 +20,7 @@ import java.io.*;
  * 
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
-public final class TweetGet {
+public final class TweetGet2 {
 
 	static String[] my_keywords = { "birthday", "dancing", "baby", "March",
 			"life" };
