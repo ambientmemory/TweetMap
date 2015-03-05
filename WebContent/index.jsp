@@ -7,6 +7,8 @@
 <%@ page import="com.amazonaws.services.s3.model.*" %>
 <%@ page import="com.amazonaws.services.dynamodbv2.*" %>
 <%@ page import="com.amazonaws.services.dynamodbv2.model.*" %>
+<%@ page import="twitter4j.GeoLocation.*" %>
+<%@ page import="java.util.*" %>
 
 <%! // Share the client objects across threads to
     // avoid creating new clients for each web request
