@@ -20,7 +20,7 @@ import java.io.*;
  */
 public final class TweetGet {
 
-	static String[] my_keywords = { "birthday", "Justin", "Wales", "March",
+	static String[] my_keywords = { "birthday", "Justin", "baby", "March",
 			"life" };
 
 	static ArrayList<GeoLocation> word_zero = new ArrayList<GeoLocation>();
@@ -53,7 +53,7 @@ public final class TweetGet {
 	public static void main(String[] args) throws TwitterException, IOException {
 		// just fill this
 		ConfigurationBuilder cb = new ConfigurationBuilder();
-		//establishin user credentials
+		//establishing user credentials
 		cb.setDebugEnabled(true)
 				.setOAuthConsumerKey("ca69SsUNt8hFo4qy21F3E22pC")
 				.setOAuthConsumerSecret(
@@ -69,6 +69,7 @@ public final class TweetGet {
 		StatusListener listener = new StatusListener() {
 			@Override
 			public void onStatus(Status status) {
+				//System.out.println("@"+status.getUser().getScreenName()+" :"+status.getText());
 				try {
 					for (int i = 0; i < my_keywords.length; i++) {
 						//We want to collect tweets that only contain the keyword
@@ -154,7 +155,7 @@ public final class TweetGet {
 		
 		//This part of the code is executed only after the listener reaches the termination condition
 		twitterStream.shutdown();
-		debug_printer();
+		db_printer();
 
 	}// end of main
 
@@ -188,16 +189,20 @@ public final class TweetGet {
 			return false;
 	}
 
-	public static void debug_printer() throws IOException,
+	public static void db_printer() throws IOException,
 			FileNotFoundException {
-		PrintWriter writer = new PrintWriter("draw_db.txt");
-		writer.println("Keyword"+"\t"+"Latitude"+"\t"+"Longitude");
+		String filename = "draw_db2.txt";
+		PrintWriter writer = new PrintWriter("C:\\Users\\Piyali\\workspace\\TweetMap_HW1\\src\\"+filename);
+		//writer.println("Keyword"+"\t"+"Latitude"+"\t"+"Longitude");
 		for (int i = 0; i < my_keywords.length; i++) {
 			for( int j = 0; j < tiny_indexer(i).size(); j++){
 				writer.println(my_keywords[i]+"\t"+tiny_indexer(i).get(j).getLatitude()+"\t"+tiny_indexer(i).get(j).getLongitude());
 			}
 		}
 		writer.close();
+		//Map_render.filename = filename;
+		//Map_render applet_test = new Map_render();
+		//applet_test.setup();
 	}
 }// end of TweetGet class
 
