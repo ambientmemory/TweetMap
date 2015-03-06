@@ -40,13 +40,13 @@ public class markerObject {
 	 * are passing the list of coordinates in a finalized format.  
 	 * @return
 	 */
-	public Coordinates[] getCoordinates(){
+	/**public Coordinates[] getCoordinates(){
 		Coordinates[] result = new Coordinates[places.size()];
 		for(int i = 0; i < result.length; i++){
 			result[i] = places.get(i);
 		}
 		return result;
-	}
+	}**/
 	
 	
 }
