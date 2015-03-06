@@ -56,13 +56,13 @@ public final class TweetGet2 {
 		ConfigurationBuilder cb = new ConfigurationBuilder();
 		// establishing user credentials
 		cb.setDebugEnabled(true)
-				.setOAuthConsumerKey("ca69SsUNt8hFo4qy21F3E22pC")
+				.setOAuthConsumerKey("CONS_KEY")
 				.setOAuthConsumerSecret(
-						"5Nd8vNgMxccSBxVACCtD9d21FPVVgWeyHrato4sIEZG8u55CpJ")
+						"CONS_SECRET")
 				.setOAuthAccessToken(
-						"2875358986-ptBvVr2iUr5h9fP3iyay0uthWTkT9RwaK9VhR6K")
+						"ACC_TOKEN")
 				.setOAuthAccessTokenSecret(
-						"lTDRSfkSDwBdyrWPhedfeR7dX0N1OWOdJgw91XWgb7Mxx");
+						"ACC_TOKEN_SECRET");
 
 		TwitterStream twitterStream = new TwitterStreamFactory(cb.build())
 				.getInstance();
