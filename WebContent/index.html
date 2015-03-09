@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="https://maps.googleapis.com/maps/api/js?libraries=visualization&sensor=true_or_false&key=API_KEY"></script>
+	<!-- Adding the jQuery and javascript plug-ins that Bootstrap may need -->
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+	<!-- Latest compiled and minified CSS of Bootstrap -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js">
+	</script>
+	<script>
+	var default_http_section_1 = "http://tweet-map-env.elasticbeanstalk.com/Tweet_map_server?search_hashtag=";
+	var default_http_section_2 = "&max_age=";
+	var chosen_hashtag = new Array(5);
+	var idx = 5;
+	var chosen_time = 24;		//and by default we display all 24 hours data
+	var icons = ["http://maps.google.com/mapfiles/ms/icons/blue-dot.jpg","http://maps.google.com/mapfiles/ms/icons/red-dot.jpg","http://maps.google.com/mapfiles/ms/icons/purple-dot.jpg","http://maps.google.com/mapfiles/ms/icons/yellow-dot.jpg","http://maps.google.com/mapfiles/ms/icons/green-dot.jpg"]
+	function get_tag_list() {
+		var temp_tag_list = new Array();
+		var url_for_tag_list = "http://tweet-map-env.elasticbeanstalk.com/Tweet_map_server?search_hashtag=%3F&max_age=24";
+		var req_struct = new XMLHttpRequest();
+		req_struct.open("GET",url_for_tag_list,false);	//false will block till http returns
+		req_struct.send(null);
+		temp_tag_list = req_struct.responseText.split("\n");
+		temp_tag_list.pop();			//Remove the last line stating the total count
+		temp_tag_list.pop();
+		//console.log("In function temp_tag_list... "+temp_tag_list);
+		return temp_tag_list;
+	} //End of function get_tag_list()
+	var tag_list = get_tag_list();
+	chosen_hashtag = tag_list;	//we by default start by drawing all 5 hashtags
+	var all_geo_data = new Array(chosen_hashtag.length);		//This will be an array of arrays each representing one google.maps.LatLng object
+	function get_tag_data(aURL) {
+		var temp_tag_data = new Array();
+		var req_struct = new XMLHttpRequest();
+		req_struct.open("GET",aURL,false);	//false will block till http returns
+		req_struct.send(null);
+		temp_tag_list = req_struct.responseText.split("\n");
+		//console.log("In function get_tag_data_full...size : "+temp_tag_list.length+" and last string is : "+temp_tag_list[temp_tag_list.length-2]);
+		temp_tag_list.pop();			//Remove the last line stating the total count
+		temp_tag_list.pop();
+		return temp_tag_list;
+	} //End of function get_tag_data(aURL)
+	var base_map;
+	var all_geo_data = new Array();
+	var	all_tag_id = new Array();
+	var	all_markers = new Array();
+	function set_markers() {
+		for (i=0; i < all_geo_data.length;i++) {
+			var marker = new google.maps.Marker({
+				position : all_geo_data[i],				//if of type LatLng
+				map : base_map,
+//				title : all_geo_data[i][0]+" "+all_geo_data[i][1],
+//				icon : icons[all_tag_id[i]],
+				animation : google.maps.Animation.DROP
+			});
+			all_markers.push(marker);
+		}
+	}
+	function refresh_markers() {
+		//Clear existing markers
+		for (i=0; i < all_markers.length;i++) {
+			all_markers[i].setMap(null);
+		}
+		all_markers = [];
+		set_markers();
+	}
+	function initialize_map() {
+		var bangalore = new google.maps.LatLng(12.9667,77.5667); 
+		var mapOptions = {
+			center: bangalore,
+			zoom: 2,
+			mapTypeId: google.maps.MapTypeId.HYBRID
+		};
+		base_map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions); //makes map global
+		if (all_geo_data.length > 0) {
+			set_markers();
+		}
+	} //End of function initialize_map
+
+	//This is the declaration of the actual work_horse function
+	function  real_work(idx){
+		//Here we segregate depending on if we have single tag or a list of tags	
+		all_geo_data = [];
+		all_tag_id = [];
+		if (typeof(chosen_hashtag) == "string") {
+			var a_url = default_http_section_1+chosen_hashtag.replace("#","%23")+default_http_section_2+chosen_time;
+			var geo_data = get_tag_data(a_url);
+			for (a_loc = 0; a_loc < geo_data.length; a_loc++) {
+				var lat_long = new Array(2);
+				lat_long = geo_data[a_loc].split(",");
+				var latlong = new google.maps.LatLng(lat_long[0],lat_long[1]);
+				all_geo_data.push(latlong);
+				all_tag_id.push(idx);
+			}			
+		} else {
+			for (a_tag = 0; a_tag < chosen_hashtag.length; a_tag++) {
+				var a_url = default_http_section_1+chosen_hashtag[a_tag].replace("#","%23")+default_http_section_2+chosen_time;
+				var geo_data = get_tag_data(a_url);
+				for (a_loc = 0; a_loc < geo_data.length; a_loc++) {
+					var lat_long = new Array(2);
+					lat_long = geo_data[a_loc].split(",");
+					var latlong = new google.maps.LatLng(lat_long[0],lat_long[1]);
+					all_geo_data.push(latlong);
+					all_tag_id.push(a_tag);
+				}
+			}
+		} //end of else
+		console.log("Debug : Real Work : Geo data array size "+all_geo_data.length);
+	} //end of function
+	function set_selected_tag(e) {
+		if (e == 5) {
+			chosen_hashtag = tag_list;
+		} else {
+			chosen_hashtag = tag_list[e];
+		}
+		console.log("Debug : clicked on list : id : "+e+" and hash tag is : "+chosen_hashtag);
+		real_work(e);
+		refresh_markers();
+	}
+	function set_age(e) {
+		chosen_time = e;
+		console.log("Debug : clicked on list : id : "+e+" and time is : "+chosen_time);
+		real_work(idx);
+		refresh_markers();
+
+	}
+	</script>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+	<title>How many people tweeted that?</title>
+	<meta charset="utf-8">
+	<style>
+		html, body, #map-canvas{
+		margin: 0%;
+		padding: 0%;
+		height: 90%;
+		}
+	</style>
+</head>
+<body>
+	<!--Adding the Bootstrap navigation components first as they must be popualted with the hashtags before the user begins.-->	
+	<nav class="navbar navbar-inverse">
+	<div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Twitter Heat Map</a>
+    </div>
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">Live Tweet View <span class="sr-only">(current)</span></a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Keyword <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li id = "tag0" onclick="set_selected_tag(0);"><a href="#">#life</a></li>
+            <li id = "tag1" onclick="set_selected_tag(1);"><a href="#">#snow</a></li>
+            <li id = "tag2" onclick="set_selected_tag(2);"><a href="#">#weather</a></li>
+			<li id = "tag3" onclick="set_selected_tag(3);"><a href="#">#warm</a></li>
+			<li id = "tag4" onclick="set_selected_tag(4);"><a href="#">#justinbieber</a></li>
+			<li class="divider"></li>
+			<li id = "tag5" onclick="set_selected_tag(5);"><a href="#">All</a></li>
+<!--            <li class="divider"></li>
+            <li><a href="#">Separated link</a></li>
+            <li class="divider"></li>
+            <li><a href="#">One more separated link</a></li>
+-->
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"> Hours tweeted for <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li id = "1" onclick="set_age(1);"><a href="#">1</a></li>
+            <li id = "2" onclick="set_age(2);"><a href="#">2</a></li>
+            <li id = "3" onclick="set_age(3);"><a href="#">3</a></li>
+			<li id = "4" onclick="set_age(4);"><a href="#">4</a></li>
+			<li id = "5" onclick="set_age(5);"><a href="#">5</a></li>
+			<li id = "6" onclick="set_age(6);"><a href="#">6</a></li>
+			<li id = "7" onclick="set_age(7);"><a href="#">7</a></li>
+			<li id = "8" onclick="set_age(8);"><a href="#">8</a></li>
+			<li id = "9" onclick="set_age(9);"><a href="#">9</a></li>
+			<li id = "10" onclick="set_age(10);"><a href="#">10</a></li>
+			<li id = "11" onclick="set_age(11);"><a href="#">11</a></li>
+			<li id = "12" onclick="set_age(12);"><a href="#">12</a></li>
+			<li id = "13" onclick="set_age(13);"><a href="#">13</a></li>
+			<li id = "14" onclick="set_age(14);"><a href="#">14</a></li>
+			<li id = "15" onclick="set_age(15);"><a href="#">15</a></li>
+			<li id = "16" onclick="set_age(16);"><a href="#">16</a></li>
+			<li id = "17" onclick="set_age(17);"><a href="#">17</a></li>
+			<li id = "18" onclick="set_age(18);"><a href="#">18</a></li>
+			<li id = "19" onclick="set_age(19);"><a href="#">19</a></li>
+			<li id = "20" onclick="set_age(20);"><a href="#">20</a></li>
+			<li id = "21" onclick="set_age(21);"><a href="#">21</a></li>
+			<li id = "22" onclick="set_age(22);"><a href="#">22</a></li>
+			<li id = "23" onclick="set_age(23);"><a href="#">23</a></li>
+			<li id = "24" onclick="set_age(24);"><a href="#">24</a></li>
+<!--            <li class="divider"></li>
+            <li><a href="#">Separated link</a></li>
+            <li class="divider"></li>
+            <li><a href="#">One more separated link</a></li>
+-->
+          </ul>
+        </li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+<!-- Nav bar display complete -->
+	<div style="height:100%; width:100%;">
+		<div id="map-canvas"></div>
+	</div>
+	<script>
+		google.maps.event.addDomListener(window, 'load', initialize_map);
+    </script>
+</body>
+</html>
